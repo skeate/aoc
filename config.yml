@@ -3,3 +3,6 @@ python:
   template: templates/python.py
   run: python solutions/python/run.py
   workingdir: .
+ts:
+  template: templates/ts.ts
+  run: npx ts-node run.ts
