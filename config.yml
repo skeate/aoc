@@ -5,7 +5,10 @@ python:
   workingdir: .
 ts:
   template: templates/ts.ts
-  run: npx ts-node run.ts -y $YEAR -d $(printf "%02d" $DAY)
+  run: npx ts-node run.ts -y %%YEAR%% -d %%DAY%%
 purescript:
   template: templates/purescript.purs
   run: spago run --main Year%%YEAR%%.Day%%DAY%%
+copilot:
+  template: templates/copilot.ts
+  run: npx ts-node run.ts -y %%YEAR%% -d %%DAY%%
