@@ -1,8 +1,11 @@
 default_lang: python
 python:
   template: templates/python.py
-  run: python solutions/python/run.py
+  run: python solutions/python/run.py -y %%YEAR%% -d %%DAY%%
   workingdir: .
 ts:
   template: templates/ts.ts
-  run: npx ts-node run.ts
+  run: npx ts-node run.ts -y $YEAR -d $(printf "%02d" $DAY)
+purescript:
+  template: templates/purescript.purs
+  run: spago run --main Year%%YEAR%%.Day%%DAY%%

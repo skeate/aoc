@@ -150,6 +150,8 @@ fi
 
 mkdir -p "solutions/$LANGUAGE/$YEAR"
 
+replacetemplate="s/%%YEAR%%/${YEAR}/g;s/%%DAY%%/$(printf "%02d" $DAY)/g"
+
 if ! [ -e "$solutionfile" ]; then
   log "Solution file does not exist; creating from template..."
   if ! [ -e "${!template_source}" ]; then
@@ -157,17 +159,21 @@ if ! [ -e "$solutionfile" ]; then
     exit 1
   fi
   if [ -f "${!template_source}" ]; then
-    sed "s/%%YEAR%%/${YEAR}/g;s/%%DAY%%/$(printf "%02d" $DAY)/g" "${!template_source}" >> "$solutionfile"
+    sed "$replacetemplate" "${!template_source}" >> "$solutionfile"
   else
     cp -r "${!template_source}" "$solutionfile"
-    sed -i "s/%%YEAR%%/${YEAR}/g;s/%%DAY%%/$(printf "%02d" $DAY)/g" "$solutionfile"/*
+    sed -i "$replacetemplate" "$solutionfile"/*
   fi
 fi
 
 if [ "$1" = "run" ]; then
   runner="${LANGUAGE}_run"
   dir="${LANGUAGE}_workingdir"
-  eval "cat $inputfile | (cd ${!dir:-"solutions/$LANGUAGE"}; ${!runner} -y $YEAR -d $(printf "%02d" $DAY))"
+  eval "cat $inputfile | (cd ${!dir:-"solutions/$LANGUAGE"}; $(echo ${!runner} | sed "$replacetemplate"))"
 else
-  eval "$EDITOR $solutionfile"
+  if [ "$EDITOR" = "nvim" ]; then
+    eval "$EDITOR -o $solutionfile $inputfile"
+  else
+    eval "$EDITOR $solutionfile"
+  fi
 fi

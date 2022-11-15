@@ -2,3 +2,6 @@ users.yml
 inputs
 .last_run.yml
 __pycache__
+.psc-ide-port
+.yarn-integrity
+node_modules/
