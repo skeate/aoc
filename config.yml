@@ -1,4 +1,4 @@
-default_lang: python
+default_lang: ts
 python:
   template: templates/python.py
   run: python solutions/python/run.py -y %%YEAR%% -d %%DAY%%

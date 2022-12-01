@@ -170,6 +170,8 @@ if [ "$1" = "run" ]; then
   runner="${LANGUAGE}_run"
   dir="${LANGUAGE}_workingdir"
   eval "cat $inputfile | (cd ${!dir:-"solutions/$LANGUAGE"}; $(echo ${!runner} | sed "$replacetemplate"))"
+elif [ "$1" = "noedit" ]; then
+  echo "Downloaded input to $inputfile"
 else
   if [ "$EDITOR" = "nvim" ]; then
     eval "$EDITOR -o $solutionfile $inputfile"
