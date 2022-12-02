@@ -1,59 +1,90 @@
 import * as fp from "fp-ts"
+import { flow, pipe } from "fp-ts/lib/function"
+import { concatAll } from "fp-ts/lib/Monoid"
+import { MonoidSum } from "fp-ts/lib/number"
+import * as O from "fp-ts/lib/Option"
+import { filter, filterMap, map, sequence } from "fp-ts/lib/ReadonlyArray"
 import * as lib from "../lib"
 
-const a_rock = "A"
-const a_paper = "B"
-const a_scissors = "C"
-
-const calcWith =
-  (
-    b_rock: "X" | "Y" | "Z",
-    b_paper: "X" | "Y" | "Z",
-    b_scissors: "X" | "Y" | "Z"
-  ) =>
-  (game: string) => {
-    if (game === "") return 0
-    const [a, b] = game.split(" ")
-    const a_wins =
-      (a === a_rock && b === b_scissors) ||
-      (a === a_paper && b === b_rock) ||
-      (a === a_scissors && b === b_paper)
-    const draw =
-      (a === a_rock && b === b_rock) ||
-      (a === a_paper && b === b_paper) ||
-      (a === a_scissors && b === b_scissors)
-
-    return (
-      (b === b_rock ? 1 : b === b_paper ? 2 : 3) + (a_wins ? 0 : draw ? 3 : 6)
-    )
-  }
-
-const loseDrawWin = (game: string) => {
-  const [a, b] = game.split(" ")
-  if (a === a_rock) {
-    if (b === "X") return 0 + 3
-    if (b === "Y") return 3 + 1
-    if (b === "Z") return 6 + 2
-  }
-  if (a === a_paper) {
-    if (b === "X") return 0 + 1
-    if (b === "Y") return 3 + 2
-    if (b === "Z") return 6 + 3
-  }
-  if (a === a_scissors) {
-    if (b === "X") return 0 + 2
-    if (b === "Y") return 3 + 3
-    if (b === "Z") return 6 + 1
-  }
-  return 0
+enum RPS {
+  Rock,
+  Paper,
+  Scissors,
 }
 
-export const run = (lines: string[]) => {
-  const score = lib.sum(lines.map(calcWith("X", "Y", "Z")))
+type Game = [opp: RPS, self: RPS]
 
-  console.log(score)
-
-  const score2 = lib.sum(lines.map(loseDrawWin))
-
-  console.log(score2)
+const beats = {
+  [RPS.Rock]: RPS.Paper,
+  [RPS.Paper]: RPS.Scissors,
+  [RPS.Scissors]: RPS.Rock,
 }
+
+const isBeatBy = {
+  [RPS.Rock]: RPS.Scissors,
+  [RPS.Paper]: RPS.Rock,
+  [RPS.Scissors]: RPS.Paper,
+}
+
+const value = {
+  [RPS.Rock]: 1,
+  [RPS.Paper]: 2,
+  [RPS.Scissors]: 3,
+}
+
+const score = ([p1, p2]: Game) => {
+  const playedScore = value[p2]
+  const winScore = p2 === beats[p1] ? 6 : 0
+  const drawScore = p1 === p2 ? 3 : 0
+  return playedScore + winScore + drawScore
+}
+
+const parsep1 = (s: string): O.Option<RPS> =>
+  s === "A"
+    ? O.some(RPS.Rock)
+    : s === "B"
+    ? O.some(RPS.Paper)
+    : s === "C"
+    ? O.some(RPS.Scissors)
+    : O.none
+
+const parseGame1 = (s: unknown): O.Option<Game> => {
+  if (typeof s !== "string" || s === "") return O.none
+  const [p1, p2] = s.split(" ")
+  const p1p = parsep1(p1)
+  const p2p =
+    p2 === "X"
+      ? O.some(RPS.Rock)
+      : p2 === "Y"
+      ? O.some(RPS.Paper)
+      : p2 === "Z"
+      ? O.some(RPS.Scissors)
+      : O.none
+  return sequence(O.Applicative)([p1p, p2p]) as O.Option<Game>
+}
+
+const parseGame2 = (s: unknown): O.Option<Game> => {
+  if (typeof s !== "string" || s === "") return O.none
+  const [p1, p2] = s.split(" ")
+  const p1p = parsep1(p1)
+  const p2p = pipe(
+    p1p,
+    O.map((op) => (p2 === "X" ? isBeatBy[op] : p2 === "Y" ? op : beats[op]))
+  )
+  return sequence(O.Applicative)([p1p, p2p]) as O.Option<Game>
+}
+
+const printScore = (
+  parser: (s: unknown) => O.Option<Game>
+): ((s: string[]) => void) =>
+  flow(
+    filterMap(parser),
+    map(score),
+    concatAll(MonoidSum),
+    console.log.bind(console)
+  )
+
+export const run: (lines: string[]) => void = flow(
+  lib.tap(printScore(parseGame1)),
+  lib.tap(printScore(parseGame2))
+)

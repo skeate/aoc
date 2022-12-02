@@ -241,3 +241,8 @@ Object.setPrototypeOf(
     },
   })
 )
+
+export const tap: <A>(f: (a: A) => void) => (a: A) => A = (f) => (a) => {
+  f(a)
+  return a
+}
