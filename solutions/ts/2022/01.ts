@@ -1,22 +1,13 @@
+import * as lib from "../lib"
+
 export const run = (lines: string[]) => {
-  const elves: number[][] = []
-  let elf = 0
+  const elves: number[][] = lib.splitMap(lines, parseInt)
 
-  lines.forEach((l) => {
-    if (l === "") {
-      elf++
-    } else {
-      elves[elf] = elves[elf] || []
-      elves[elf].push(parseInt(l))
-    }
-  })
+  const elfSums = elves.map(lib.sum).sort()
+  const p1 = elfSums.at(-1)!
+  console.log(p1)
 
-  const elfSums = elves.map((elf) => elf.reduce((a, b) => a + b, 0)).sort()
-  console.log(elfSums[elfSums.length - 1])
+  const p2 = p1 + elfSums.at(-2)! + elfSums.at(-3)!
 
-  console.log(
-    elfSums[elfSums.length - 1] +
-      elfSums[elfSums.length - 2] +
-      elfSums[elfSums.length - 3]
-  )
+  console.log(p2)
 }

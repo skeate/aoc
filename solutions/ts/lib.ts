@@ -24,7 +24,7 @@ export const lcm = (a: number, b: number): number => {
 }
 
 export const factors = (n: number): number[] => {
-  const factors = []
+  const factors = [1]
   let divisor = 2
 
   while (n >= 2) {
@@ -121,3 +121,123 @@ export const memoize = <A, B>(f: (a: A) => B): ((a: A) => B) => {
     return b
   }
 }
+
+export function split(xs: string[], sep?: string): string[][]
+export function split<A>(xs: A[], sep: A): A[][]
+export function split(xs: string[], sep: string = ""): string[][] {
+  const result: string[][] = []
+  let current: string[] = []
+  xs.forEach((x) => {
+    if (x === sep) {
+      result.push(current)
+      current = []
+    } else {
+      current.push(x)
+    }
+  })
+  result.push(current)
+  return result
+}
+
+export function splitMap<A>(
+  xs: string[],
+  map: (x: string) => A,
+  sep?: string
+): A[][]
+export function splitMap<A, B>(xs: A[], map: (x: A) => B, sep: A): B[][]
+export function splitMap<A>(
+  xs: string[],
+  map: (x: string) => A,
+  sep: string = ""
+): A[][] {
+  const result: A[][] = []
+  let current: A[] = []
+  xs.forEach((x) => {
+    if (x === sep) {
+      result.push(current)
+      current = []
+    } else {
+      current.push(map(x))
+    }
+  })
+  result.push(current)
+  return result
+}
+
+export const sum = (xs: number[]): number => {
+  return xs.reduce((a, b) => a + b, 0)
+}
+
+export function* permutations<A>(as: A[]): Generator<A[], void> {
+  if (as.length === 0) {
+    yield []
+    return
+  }
+
+  for (let i = 0; i < as.length; i++) {
+    const a = as[i]
+    const rest = as.slice(0, i).concat(as.slice(i + 1))
+    for (const perm of permutations(rest)) {
+      yield [a, ...perm]
+    }
+  }
+}
+
+/**
+ * Find all combinations of a given length from a list of elements.
+ *
+ * If the length is not specified, all combinations of all lengths are returned.
+ */
+export function* combinations<A>(
+  as: A[],
+  len: number = -1
+): Generator<A[], void> {
+  if (len > as.length) {
+    return
+  }
+  if (as.length === 0 || len === 0) {
+    yield []
+    return
+  }
+
+  if (len === as.length) {
+    yield as
+    return
+  }
+
+  if (len === -1) {
+    yield []
+    for (let i = 1; i <= as.length; i++) {
+      yield* combinations(as, i)
+    }
+    return
+  }
+
+  for (let i = 0; i < as.length; i++) {
+    const a = as[i]
+    const rest = as.slice(i + 1)
+    for (const comb of combinations(rest, len - 1)) {
+      yield [a, ...comb]
+    }
+  }
+}
+
+export const pairs = <A>(as: A[]): Generator<[A, A], void> =>
+  combinations(as, 2) as Generator<[A, A], void>
+
+Object.setPrototypeOf(
+  Array,
+  new Proxy(Array.prototype, {
+    get(target, prop) {
+      console.log("in array get")
+      if (typeof prop === "string" && prop.startsWith("-")) {
+        const index = parseInt(prop.slice(1))
+        if (!Number.isNaN(index)) {
+          return target[target.length - index]
+        }
+      }
+      // @ts-ignore
+      return target[prop]
+    },
+  })
+)
