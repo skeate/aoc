@@ -1,39 +1,33 @@
-import * as fp from "fp-ts"
-import { pipe } from "fp-ts/lib/function"
-import * as lib from "../lib"
+import { pipe } from "fp-ts/function"
+import * as RA from "fp-ts/ReadonlyArray"
+import * as N from "fp-ts/number"
+import * as Str from "fp-ts/string"
+import { not } from "fp-ts/lib/Predicate"
 
 const prios = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 
 export const run = (lines: string[]) => {
   const p = pipe(
     lines,
-    fp.readonlyArray.filter((s) => s.length > 0),
-    fp.readonlyArray.map((s) => [
-      s.slice(0, s.length / 2),
-      s.slice(s.length / 2),
-    ]),
-    fp.readonlyArray.map(([a, b]) => [a.split(""), b.split("")]),
-    fp.readonlyArray.map(
-      ([a, b]) => fp.readonlyArray.intersection(fp.string.Eq)(a, b)[0]
-    ),
-    fp.readonlyArray.foldMap(fp.number.MonoidSum)((s) => prios.indexOf(s))
+    RA.filter(not(Str.isEmpty)),
+    RA.map(Str.split("")),
+    RA.map((s) => [s.slice(0, s.length / 2), s.slice(s.length / 2)]),
+    RA.map(([a, b]) => RA.intersection(Str.Eq)(a, b)[0]),
+    RA.foldMap(N.MonoidSum)((s) => prios.indexOf(s))
   )
 
   console.log(p)
 
   const p2 = pipe(
     lines,
-    fp.readonlyArray.filter((s) => s.length > 0),
-    fp.readonlyArray.map((s) => s.split("")),
-    fp.readonlyArray.chunksOf(3),
-    fp.readonlyArray.map(
+    RA.filter(not(Str.isEmpty)),
+    RA.map(Str.split("")),
+    RA.chunksOf(3),
+    RA.map(
       ([a, b, c]) =>
-        fp.readonlyArray.intersection(fp.string.Eq)(
-          a,
-          fp.readonlyArray.intersection(fp.string.Eq)(b, c)
-        )[0]
+        RA.intersection(Str.Eq)(a, RA.intersection(Str.Eq)(b, c))[0]
     ),
-    fp.readonlyArray.foldMap(fp.number.MonoidSum)((s) => prios.indexOf(s))
+    RA.foldMap(N.MonoidSum)((s) => prios.indexOf(s))
   )
 
   console.log(p2)
