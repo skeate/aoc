@@ -1,134 +1,73 @@
-import * as fp from "fp-ts"
-import { pipe } from "fp-ts/lib/function"
-import * as lib from "../lib"
+import { flow, pipe } from "fp-ts/function"
+import * as RA from "fp-ts/ReadonlyArray"
+import * as RNEA from "fp-ts/ReadonlyNonEmptyArray"
+import * as O from "fp-ts/Option"
+import { isEmpty, split } from "fp-ts/lib/string"
+import { not } from "fp-ts/lib/Predicate"
 
-type Coord = `${number},${number}`
+type Coord = { x: number; y: number }
+type CoordHash = `${number},${number}`
 
-const dist = (a: readonly [number, number], b: readonly [number, number]) =>
-  (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+const coord = (x: number, y: number): Coord => ({ x, y })
+const hash = (c: Coord): CoordHash => `${c.x},${c.y}` as const
 
-const part1 = (lines: string[]) => {
-  type Pos = {
-    head: readonly [number, number]
-    tail: readonly [number, number]
-  }
-  const pos: Pos = {
-    head: [0, 0],
-    tail: [0, 0],
-  }
+const dist2 = (a: Coord, b: Coord) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2
 
-  const move =
-    (dx: number, dy: number) =>
-    (pos: Pos): Pos => {
-      const [x, y] = pos.head
-      const [x2, y2] = pos.tail
-      return {
-        head: [x + dx, y + dy],
-        tail: dist([x + dx, y + dy], pos.tail) < 4 ? [x2, y2] : [x, y],
-      }
-    }
+type Rope = RNEA.ReadonlyNonEmptyArray<Coord>
 
-  const right = move(-1, 0)
-  const left = move(1, 0)
-  const up = move(0, -1)
-  const down = move(0, 1)
+const addc =
+  (dx: number, dy: number) =>
+  (c: Coord): Coord => ({
+    x: c.x + dx,
+    y: c.y + dy,
+  })
 
-  const tailVisited = new Set<Coord>()
+const nudgeToward =
+  (b: number) =>
+  (a: number): number =>
+    a === b ? a : b < a ? a - 1 : a + 1
 
-  const final = lines
-    .filter((l) => l !== "")
-    .flatMap((l) => {
-      const [d, c] = l.split(" ")
-      switch (d) {
-        case "L":
-          return fp.array.replicate(parseInt(c), left)
-        case "R":
-          return fp.array.replicate(parseInt(c), right)
-        case "U":
-          return fp.array.replicate(parseInt(c), up)
-        case "D":
-          return fp.array.replicate(parseInt(c), down)
-        default:
-          return []
-      }
-    })
-    .reduce((pos, f) => {
-      tailVisited.add(`${pos.tail[0]},${pos.tail[1]}` as Coord)
-      return f(pos)
-    }, pos)
-  tailVisited.add(`${final.tail[0]},${final.tail[1]}` as Coord)
+const follow = (n: Coord, o: Coord): Coord =>
+  // if dist2 < 4 (i.e. dist < 2) then we're already adjacent and don't need to move
+  dist2(n, o) < 4 ? o : { x: nudgeToward(n.x)(o.x), y: nudgeToward(n.y)(o.y) }
 
-  console.log(tailVisited.size)
-}
+const move: (dx: number, dy: number) => (r: Rope) => Rope =
+  (dx, dy) =>
+  ([h, ...knots]) =>
+    pipe(
+      knots,
+      RA.scanLeft(addc(dx, dy)(h), follow),
+      RNEA.fromReadonlyArray,
+      O.getOrElse(() => pipe(RNEA.of(h), RNEA.concat(knots)))
+    )
 
-const part2 = (lines: string[]) => {
-  type Pos = {
-    head: readonly [number, number]
-    tails: Array<readonly [number, number]>
-  }
-
-  const pos: Pos = {
-    head: [0, 0],
-    tails: fp.array.replicate(9, [0, 0]),
-  }
-
-  const move =
-    (dx: number, dy: number) =>
-    (pos: Pos): Pos => {
-      const [x, y] = pos.head
-      const head = [x + dx, y + dy] as const
-      const tails = []
-      let curHead = head
-      let curPast = [x, y] as const
-      for (let i = 0; i < pos.tails.length; i++) {
-        const tail = pos.tails[i]
-        if (dist(curHead, tail) < 4) {
-          tails.push(...pos.tails.slice(i))
-          break
-        } else {
-          tails.push(curPast)
-          curHead = curPast
-          curPast = tail
-        }
-      }
-
-      return { head, tails }
-    }
-
-  const right = move(1, 0)
-  const left = move(-1, 0)
-  const up = move(0, -1)
-  const down = move(0, 1)
-
-  const tailVisited = new Set<Coord>()
-
-  const final = lines
-    .filter((l) => l !== "")
-    .flatMap((l) => {
-      const [d, c] = l.split(" ")
-      switch (d) {
-        case "L":
-          return fp.array.replicate(parseInt(c), left)
-        case "R":
-          return fp.array.replicate(parseInt(c), right)
-        case "U":
-          return fp.array.replicate(parseInt(c), up)
-        case "D":
-          return fp.array.replicate(parseInt(c), down)
-        default:
-          return []
-      }
-    })
-    .reduce((pos, f, i) => {
-      tailVisited.add(`${pos.tails[8][0]},${pos.tails[8][1]}` as Coord)
-      return f(pos)
-    }, pos)
-  tailVisited.add(`${final.tails[8][0]},${final.tails[8][1]}` as Coord)
-
-  console.log(tailVisited.size)
+const dir = {
+  L: move(-1, 0),
+  R: move(1, 0),
+  U: move(0, -1),
+  D: move(0, 1),
 }
 
 export const run = (lines: string[]) => {
-  part1(lines)
-  part2(lines)
+  const moves = pipe(
+    lines,
+    RA.filterMap(flow(O.fromPredicate(not(isEmpty)), O.map(split(" ")))),
+    RA.chain(([d, c]) =>
+      RNEA.replicate(dir[d as keyof typeof dir])(parseInt(c))
+    )
+  )
+
+  const trackTail = (rope: Rope): Set<CoordHash> => {
+    const tracker = new Set<CoordHash>()
+    tracker.add(hash(RNEA.last(rope)))
+    moves.reduce((r, f) => {
+      const next = f(r)
+      tracker.add(hash(RNEA.last(next)))
+      return next
+    }, rope)
+    return tracker
+  }
+
+  console.log(trackTail(RNEA.replicate(coord(0, 0))(2)).size)
+  console.log(trackTail(RNEA.replicate(coord(0, 0))(10)).size)
 }
