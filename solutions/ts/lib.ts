@@ -139,6 +139,16 @@ export function split(xs: string[], sep: string = ""): string[][] {
   return result
 }
 
+export const splitAt =
+  (l: number) =>
+  (s: string): Array<string> => {
+    const ret: string[] = []
+    for (let i = 0; i < s.length; i += l) {
+      ret.push(s.slice(i, i + l))
+    }
+    return ret
+  }
+
 export function splitMap<A>(
   xs: string[],
   map: (x: string) => A,
@@ -224,23 +234,6 @@ export function* combinations<A>(
 
 export const pairs = <A>(as: A[]): Generator<[A, A], void> =>
   combinations(as, 2) as Generator<[A, A], void>
-
-Object.setPrototypeOf(
-  Array,
-  new Proxy(Array.prototype, {
-    get(target, prop) {
-      console.log("in array get")
-      if (typeof prop === "string" && prop.startsWith("-")) {
-        const index = parseInt(prop.slice(1))
-        if (!Number.isNaN(index)) {
-          return target[target.length - index]
-        }
-      }
-      // @ts-ignore
-      return target[prop]
-    },
-  })
-)
 
 export const tap: <A>(f: (a: A) => void) => (a: A) => A = (f) => (a) => {
   f(a)
