@@ -239,3 +239,10 @@ export const tap: <A>(f: (a: A) => void) => (a: A) => A = (f) => (a) => {
   f(a)
   return a
 }
+
+export const top =
+  (n: number) =>
+  (xs: number[]): number[] =>
+    [...xs].sort((a, b) => b - a).slice(0, n)
+
+export const product = (xs: number[]): number => xs.reduce((a, b) => a * b, 1)
