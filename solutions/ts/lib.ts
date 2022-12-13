@@ -246,3 +246,8 @@ export const top =
     [...xs].sort((a, b) => b - a).slice(0, n)
 
 export const product = (xs: number[]): number => xs.reduce((a, b) => a * b, 1)
+
+export const distManhattan = (
+  p1: [number, number],
+  p2: [number, number]
+): number => Math.abs(p1[0] - p2[0]) + Math.abs(p1[1] - p2[1])
