@@ -251,3 +251,24 @@ export const distManhattan = (
   p1: [number, number],
   p2: [number, number]
 ): number => Math.abs(p1[0] - p2[0]) + Math.abs(p1[1] - p2[1])
+
+export const tup = (x: number, y: number): [number, number] => [x, y]
+
+export const neighborsOrth = (p: [number, number]): [number, number][] => [
+  tup(p[0] - 1, p[1]),
+  tup(p[0] + 1, p[1]),
+  tup(p[0], p[1] - 1),
+  tup(p[0], p[1] + 1),
+]
+
+export const neighborsDiag = (p: [number, number]): [number, number][] => [
+  tup(p[0] - 1, p[1] - 1),
+  tup(p[0] + 1, p[1] + 1),
+  tup(p[0] + 1, p[1] - 1),
+  tup(p[0] - 1, p[1] + 1),
+]
+
+export const neighbors = (p: [number, number]): [number, number][] => [
+  ...neighborsOrth(p),
+  ...neighborsDiag(p),
+]
