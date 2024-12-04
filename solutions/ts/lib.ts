@@ -272,3 +272,33 @@ export const neighbors = (p: [number, number]): [number, number][] => [
   ...neighborsOrth(p),
   ...neighborsDiag(p),
 ]
+
+export class Grid<T> {
+  private _width: number | undefined;
+  private _height: number | undefined;
+
+  constructor(readonly cells: ReadonlyArray<ReadonlyArray<T>>) {}
+
+  static fromLines(lines: string[]): Grid<string> {
+    return new Grid(lines.map(l => l.split('')));
+  }
+
+  get width() {
+    if (this._width === undefined) this._width = this.cells[0]?.length ?? 0
+    return this._width
+  }
+
+  get height() {
+    if (this._height === undefined) this._height = this.cells.length
+    return this._height
+  }
+
+  forEach(f: (t: T, meta: { x: number, y: number, neighbors: ReadonlyArray<T> }) => void) {
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const ns = neighbors([x, y]).flatMap(([x_, y_]) => x >= 0 && x < this.width && y >= 0 && y < this.height ? [this.cells[y_][x_]] : [])
+        f(this.cells[y][x], { x, y, neighbors: ns })
+      }
+    }
+  }
+}
