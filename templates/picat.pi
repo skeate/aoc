@@ -1,0 +1,6 @@
+run(Lines) =>
+	% part 1
+	println("part 1 answer"),
+
+	% part 2
+	println("part 2 answer").

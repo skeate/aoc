@@ -1,0 +1,26 @@
+import util.
+
+run(Lines) =>
+	% part 1
+	Parsed = [split(S) : S in Lines],
+	Left = [parse_radix_string(first(S), 10) : S in Parsed],
+	Right = [parse_radix_string(last(S), 10) : S in Parsed],
+	LeftSorted = sort(Left),
+	RightSorted = sort(Right),
+	Distances = [abs(L - R) : {L, R} in zip(LeftSorted, RightSorted)],
+	println(sum(Distances)),
+
+	% part 2
+
+	Similarities = [L * count(L, RightSorted) : L in Left],
+	println(sum(Similarities)).
+
+
+count(Term, List) = Count => 
+	Last = find_last_of(List, Term),
+	First = find_first_of(List, Term),
+	if First < 0 then
+		Count = 0
+	else
+		Count = (Last + 1 - First)
+	end.

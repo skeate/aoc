@@ -1,0 +1,4 @@
+main([Prog]) =>
+	F = read_file_lines(),
+    cl(Prog),
+    run(F).

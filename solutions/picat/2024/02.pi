@@ -1,0 +1,24 @@
+import util.
+
+run(Lines) =>
+	Parsed = [[parse_radix_string(N, 10): N in split(S)] : S in Lines],
+	Safes = [Nums : Nums in Parsed, safe(Nums)],
+	println(len(Safes)),
+
+	DampedSafes = [Nums : Nums in Parsed, damped_safe(Nums)],
+	println(len(DampedSafes)).
+
+
+
+differences(Nums) =	[A - B : {A, B} in zip(Nums, tail(Nums))].
+
+min_max(List, Min, Max) => Min = min(List), Max = max(List).
+	
+safe(List) :-
+	DiffList = differences(List),
+	min_max(DiffList, Min, Max),
+	((Min >= 1, Max <= 3); (Min >= -3, Max <= -1)).
+
+damped_safe(List) =>
+	safe(List);
+	select(_, List, LL), safe(LL).
