@@ -1,0 +1,79 @@
+run(Lines) =>
+	% part 1
+	Grid = r_to_array(Lines),
+	Part1 = count_all(wordfind("XMAS", Grid)),
+	println(Part1),
+
+	% part 2
+	Part2 = count_all(crossmas_find(Grid, X)),
+	println(Part2).
+
+r_to_array(X) = Arr, list(X) =>
+	Arr = {r_to_array(Y) : Y in X}.
+r_to_array(X) = X.
+
+direction(up).
+direction(down).
+direction(left).
+direction(right).
+direction(up_left).
+direction(up_right).
+direction(down_left).
+direction(down_right).
+
+wordfind(Word, Grid) :-
+	member(Y, 1..len(Grid)),
+	member(X, 1..len(Grid[Y])),
+	Grid[Y, X] = Word[1],
+	direction(Direction),
+	word_at(Word, Grid, X, Y, Direction)
+	.
+
+
+step(X, Y, up)         = [X+0, Y-1].
+step(X, Y, down)       = [X+0, Y+1].
+step(X, Y, left)       = [X-1, Y+0].
+step(X, Y, right)      = [X+1, Y+0].
+step(X, Y, up_left)    = [X-1, Y-1].
+step(X, Y, up_right)   = [X+1, Y-1].
+step(X, Y, down_left)  = [X-1, Y+1].
+step(X, Y, down_right) = [X+1, Y+1].
+
+
+word_at([L|W], Grid, X, Y, Direction),
+	direction(Direction),
+	X > 0,
+	Y > 0,
+	Y <= len(Grid),
+	X <= len(Grid[Y]) =>
+	L = Grid[Y, X],
+	[NX, NY] = step(X, Y, Direction),
+	word_at(W, Grid, NX, NY, Direction).
+word_at([], _, _, _, _) => true.
+
+diagonal_neighbors(Grid, X, Y) = Out,
+	X > 1,
+	Y > 1,
+	Y < len(Grid),
+	X < len(Grid[Y]) => Out = [
+		Grid[Y-1, X-1],
+		Grid[Y-1, X+1],
+		Grid[Y+1, X-1],
+		Grid[Y+1, X+1]
+	].
+diagonal_neighbors(_, _, _) = [].
+
+table
+mas_cross([Ul, Ur, Ll, Lr]) :-
+	UlLr = sort([Ul, Lr]),
+	UrLl = sort([Ur, Ll]),
+	UlLr = "MS",
+	UrLl = "MS".
+
+crossmas_find(Grid, Loc) :-
+	member(Y, 1..len(Grid)),
+	member(X, 1..len(Grid[Y])),
+	Grid[Y, X] = 'A',
+	mas_cross(diagonal_neighbors(Grid, X, Y)),
+	Loc = (X, Y)
+	.
