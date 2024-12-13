@@ -1,0 +1,48 @@
+import util.
+
+run(Lines) =>
+	Concatenated = join(Lines, ""),
+	% part 1
+	line(Parsed, Concatenated, ""),
+	Part1 = sum(Parsed),
+	println(Part1),
+
+	% part 2
+	line2(Parsed2, y, Concatenated, ""),
+	Part2 = sum(Parsed2),
+	println(Part2).
+
+mul(X, Y) --> "mul(", mul_term(X), ",", mul_term(Y), ")".
+mul_term(X) --> digit(A), digit(B), digit(C), { X = to_int([A,B,C]) }.
+mul_term(X) --> digit(A), digit(B), { X = to_int([A, B]) }.
+mul_term(X) --> digit(A), { X = to_int([A])}.
+
+junk --> [].
+junk --> [_], junk.
+
+digit(N) --> [N], {member(N, "1234567890")}.
+
+line([H|T]) -->
+	junk,
+	mul(A, B),
+	{ H = A * B },
+	line(T).
+line([]) --> junk.
+
+enable_mul --> "do()".
+disable_mul --> "don't()".
+
+line2(Prods, _) -->
+	enable_mul,
+	line2(Prods, y).
+line2(Prods, _) -->
+	disable_mul,
+	line2(Prods, n).
+line2([H|T], y) -->
+	mul(A, B),
+	{ H = A * B },
+	line2(T, y).
+line2(Prods, Enabled) -->
+	[_],
+	line2(Prods, Enabled).
+line2([], _) --> junk.
