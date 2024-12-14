@@ -1,0 +1,37 @@
+import util.
+
+run(Lines) =>
+	OrderingRules = [split(L, "|") : L in Lines, member('|', L)],
+	Orders = [split(L, ",") : L in Lines, member(',', L)],
+
+	partition(Orders, $invalid_order(OrderingRules), InvalidOrders, ValidOrders),
+
+	% part 1
+	Part1 = sum([to_int(Mid) : O in ValidOrders, middle_number(O, Mid)]),
+	println(Part1),
+
+	% part 2
+	Part2 = sum([to_int(Mid) : O in InvalidOrders, middle_number(ordered(OrderingRules, O), Mid)]),
+	println(Part2).
+
+middle_number(L, Middle), list(L), len(L) > 0 =>
+	Middle = L[len(L) // 2 + 1].
+
+invalid_order(Rules, [H|T]) :-
+	member(A, T),
+	member([A, H], Rules);
+	invalid_order(Rules, T).
+invalid_order(_, []) :- fail.
+
+
+partition([H|T], Cond, [H|Yes], No) :- call(Cond, H), !, partition(T, Cond, Yes, No).
+partition([H|T], Cond, Yes, [H|No]) :- partition(T, Cond, Yes, No).
+partition([], _, Yes, No) :- Yes=[], No=[].
+
+ordered(_, []) = [].
+ordered(Rules, L) = OrderedL =>
+	member(X, L),
+	not (member([B, X], Rules), member(B, L)),
+	!,
+	OrderedL = [X | ordered(Rules, delete(L, X))].
+
