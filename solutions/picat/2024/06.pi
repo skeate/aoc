@@ -1,0 +1,78 @@
+import planner.
+
+run(Lines) =>
+	% part 1
+	nth(StartRow, Lines, Elem),
+	nth(StartCol, Elem, '^'),
+	Start = {StartRow, StartCol},
+	Cost = cost(Lines, Start, up, new_set(len(Lines) * len(Lines[1])), new_set(len(Lines) * len(Lines[1]))),
+	println(Cost),
+
+	% part 2
+	Part2 = count_all(loops(Lines, {Y,X}, Start, up)),
+	println(Part2).
+
+out_of_bounds({Y, X}, Grid) :-
+	Y < 1
+	; X < 1
+	; Y > len(Grid)
+	; X > len(Grid[1])
+	.
+
+next_pos({ Y, X }, up) = { Y - 1, X }.
+next_pos({ Y, X }, down) = { Y + 1, X }.
+next_pos({ Y, X }, left) = { Y, X - 1 }.
+next_pos({ Y, X }, right) = { Y, X + 1 }.
+
+turn_right(up) = right.
+turn_right(right) = down.
+turn_right(down) = left.
+turn_right(left) = up.
+
+cost(Grid, Pos, Dir, Visited, VisitedWithDirection) = Out,
+	out_of_bounds(Pos, Grid) =>
+	Out = size(Visited).
+
+cost(Grid, Pos, Dir, Visited, VisitedWithDirection) = Out,
+	has_key(VisitedWithDirection, {Pos, Dir}) =>
+	Out = loop.
+
+cost(Grid, Pos, Dir, Visited, VisitedWithDirection) = Out =>
+	% println("Step:"),
+	% printf("Pos: %w\n", Pos),
+	% printf("Dir: %w\n", Dir),
+	% printf("Visited: %d\n", size(Visited)),
+	% printf("Visited: %w\n", Visited),
+	put(VisitedWithDirection, {Pos, Dir}),
+	put(Visited, Pos),
+	{ NY, NX } = next_pos(Pos, Dir),
+	if out_of_bounds({NY, NX}, Grid) then
+		Out = cost(Grid, {NY,NX}, Dir, Visited, VisitedWithDirection)
+	elseif Grid[NY, NX] = '#' then
+		Out = cost(Grid, Pos, turn_right(Dir), Visited, VisitedWithDirection)
+	else
+		Out = cost(Grid, {NY,NX}, Dir, Visited, VisitedWithDirection)
+	end
+	.
+
+replace_at(Mat, {Y, X}, NewValue) =
+	[[ cond((IX == X && IY == Y), NewValue, Mat[IY, IX]) : IX in 1..len(Mat[IY]) ] : IY in 1..len(Mat)].
+
+loops(Grid, ExtraObstaclePos@{Y, X}, Pos, Dir) ?=>
+	member(Y, 1..len(Grid)),
+	member(X, 1..len(Grid[Y])),
+	ExtraObstaclePos !== Pos,
+	NewGrid = replace_at(Grid, ExtraObstaclePos, '#'),
+	Visited = new_set(len(Grid) * len(Grid[1])),
+	VisitedWithDirection = new_set(len(Grid) * len(Grid[1])),
+	cost(NewGrid, Pos, Dir, Visited, VisitedWithDirection) = loop.
+
+% this is brute force ...
+% a better way might be to look at `cost`'s `Visited` and `VisitedWithDirection`,
+% and then find the instances where a cell {Y,X} is visited twice in a way where
+% - the first time is direction D
+% - the second time, D2, is turn_right(D2) = D
+% if this exists, then an obstacle at next_pos({Y,X}, D2) would make them turn
+% and begin a loop
+
+% should be faster than iterating through every possible cell.
