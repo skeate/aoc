@@ -1,0 +1,20 @@
+import util.
+include "../lib.pi".
+
+run(Lines) =>
+	% part 1
+	Parsed = [[to_int(Answer), map(Terms, to_int)] : Line in Lines, [Answer|Terms] = split(Line, ": ")],
+	partition(Parsed, $valid_equation(['*', '+']), Valid, Invalid),
+	Part1 = sum(map(Valid, head)),
+	println(Part1),
+
+	% part 2
+	ValidWithConcat = [Eq : Eq in Invalid, valid_equation(['*', '+', concat], Eq)],
+	Part2 = sum(map(ValidWithConcat, head)),
+	println(Part1 + Part2).
+
+valid_equation(_, [Answer, []]) :- fail.
+valid_equation(_, [Answer, [Term]]) :- Answer = Term.
+valid_equation(Ops, [Answer, [A, B|Terms]]) :-
+	member(Op, Ops),
+	valid_equation(Ops, [Answer, [apply(Op, A, B)|Terms]]).

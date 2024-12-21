@@ -1,4 +1,5 @@
 import util.
+include "../lib.pi".
 
 run(Lines) =>
 	OrderingRules = [split(L, "|") : L in Lines, member('|', L)],
@@ -22,11 +23,6 @@ invalid_order(Rules, [H|T]) :-
 	member([A, H], Rules);
 	invalid_order(Rules, T).
 invalid_order(_, []) :- fail.
-
-
-partition([H|T], Cond, [H|Yes], No) :- call(Cond, H), !, partition(T, Cond, Yes, No).
-partition([H|T], Cond, Yes, [H|No]) :- partition(T, Cond, Yes, No).
-partition([], _, Yes, No) :- Yes=[], No=[].
 
 ordered(_, []) = [].
 ordered(Rules, L) = OrderedL =>

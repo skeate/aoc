@@ -1,0 +1,5 @@
+partition([H|T], Cond, [H|Yes], No) :- call(Cond, H), !, partition(T, Cond, Yes, No).
+partition([H|T], Cond, Yes, [H|No]) :- partition(T, Cond, Yes, No).
+partition([], _, Yes, No) :- Yes=[], No=[].
+
+concat(A, B) = to_int(to_string(A) ++ to_string(B)).
